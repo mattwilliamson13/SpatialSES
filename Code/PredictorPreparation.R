@@ -66,4 +66,23 @@ RD_grant_sum <- RD_grant_sub %>% group_by(St.Cd.Fips, Cty.Cd.Fips) %>%
 RD_AOE <- RD_grant_sum[RD_grant_sum$St.Cd.Fips == "06" | RD_grant_sum$St.Cd.Fips == "53" | RD_grant_sum$St.Cd.Fips == "41",] #subset to AOE
 RD_AOE$GEOID <- paste0(RD_AOE$St.Cd.Fips, RD_AOE$Cty.Cd.Fips) #create GEOID lookup
 
+##Ecological variables
+#Rarity Weighted Richness
+RWR <- read.csv(paste0(infolder,"RWRZones.csv", colClasses = "character", stringsAsFactors = FALSE) #load zonal stats results 
+colnames(RWR)[1] <- "GeoFIPS"
+CA_RWR <- RWR[grep("^06", RWR$GeoFIPS),]
+WA_RWR <- RWR[grep("^53", RWR$GeoFIPS),]
+OR_RWR <- RWR[grep("^41", RWR$GeoFIPS) ,]
+
+AOE_RWR <- rbind(CA_RWR, WA_RWR, OR_RWR)
+colnames(AOE_RWR)[c(1,4)] <- c("GEOID","mxRWR")
+
+#Wilderness Character
+wc <- read.csv("D:/Data/CDCS_example/Data/WildChar.csv", colClasses = "character", stringsAsFactors = FALSE) #load wilderness character zonal stats results
+AOE_wc <- wc[wc$state_name == "California" | wc$state_name == "Oregon" | wc$state_name == "Washington",]
+colnames(AOE_wc)[1] <- "GEOID"
+
+#Human footprint
+hm <- read.csv("D:/Data/CDCS_example/Data/human_mod.csv", stringsAsFactors = FALSE, colClasses = "character") #load human modification zonal stats
+hm$GEOID <- paste0(hm$sfp, hm$cfp)
 
