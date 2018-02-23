@@ -34,5 +34,26 @@ val_AOE$Value <- gsub(",","",val_AOE$Value) #remove commas so that dollars is nu
 ##Institutional capacity variables
 ##NonProfits
 np_16 <- read.csv(paste0(infolder,"bmf.bm1608.csv"), stringsAsFactors = FALSE) #from the National Center for Charitable Statistics
+np_16$FIPS <- ifelse(nchar(np_16$FIPS) == 4, paste0("0", np_16$FIPS), np_16$FIPS) #add leading zeros
+np_16aoe <- np_16[np_16$STATE == "CA" | np_16$STATE == "OR" | np_16$STATE == "WA",] #subset to Area of Interest
+np_16_sum <- np_16aoe %>% group_by(FIPS, LEVEL4) %>% summarise(numOrg16 = n()) #Group non-profits by code denoting NAICS type
+
+np_16_tot <- np_16_sum %>% group_by(FIPS) %>% summarise(totNP16 = n()) #sum across all organization types for each county
+colnames(np_16_tot)[1] <- "GEOID"
+
+###County Governments
+co_emp_dat_12 <- read.table(paste0(infolder,"12coar2.dat", colClasses="character") #load 2012 county employment data; fields described in  County Area Data File Record Layout.pdf
+colnames(co_emp_dat_12) <- c("stcode","ctycode","dataID","FTE","FTP","PTE","PTP","PTH","FTEE","TOTEMP","TOTPAY")
+co_emp_inf_12 <- read.fwf(paste0(infolder,"12coar1.dat"), widths=c(2,1,3,8,35,29,1,30,2,3,5,4,2,9,2,61,2),colClasses='character',strip.white=TRUE) #load county area ID file described in County Area ID File Record Layout.pdf
+co_emp_fips_12 <- co_emp_inf_12[,c(1,3,8:10),] #get fips codes
+
+colnames(co_emp_fips_12) <- c("stcode","ctycode", "ctyname","sfp","cfp")
+co_emp_dat_12_merge <- merge(co_emp_dat_12, co_emp_fips_12, by=c("stcode","ctycode"),all.x=TRUE) #merge fips data with employment data
+
+## FIPS Codes are 06, 53, 41
+AOE_Emp <- co_emp_dat_12_merge[co_emp_dat_12_merge$sfp == "06" | co_emp_dat_12_merge$sfp == "53" | co_emp_dat_12_merge$sfp == "41",  ]
+AOE_totEmp <- AOE_Emp[AOE_Emp$dataID == "000",]
+AOE_totEmp$GEOID <- paste0(AOE_totEmp$sfp, AOE_totEmp$cfp)
+
 
 
