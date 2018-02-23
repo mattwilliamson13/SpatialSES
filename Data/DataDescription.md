@@ -11,3 +11,4 @@ All data available at: https://drive.google.com/drive/folders/144wsqMMteMFwdNAUD
 |human_mod.csv|Zonal stats results for counties overlaid on Theobald (2013) human modificaiton index|contact DM Theobald for original dataset|
 |RWRZones.csv|Zonal stats results for counties overlaid on Rarity Weighted Richness estimates|contact NatureServe for orginial dataset|
 |WildChar.csv|Zonal stats results for counties overlaid on wilderness character estimates| available at http://www.arcgis.com/home/item.html?id=33fbfd2697134c00bc66b4a7b438f4b1|
+|LT_clean.csv|Estimate of easement activity per county based on the number of easements a land trust reported within a state and the number of counties in which they operate for that state|contact the Land Trust Alliance for raw data used to calculate these values|
