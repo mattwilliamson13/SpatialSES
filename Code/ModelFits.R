@@ -5,7 +5,7 @@ library(rstanarm)
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
-infolder <- "location of CDCS_casedf.csv" #from PredictorPrep.R
+infolder <- "location of CDCS_casedf.csv" #from PredictorPreperation.R
 df <- read.csv(paste0(infolder,"CDCS_casedf.csv"), colClasses = "character")
 
 df$state <- coerce_index(substr(df$GEOID, start = 1, stop=2)) #create index for varying intercept
