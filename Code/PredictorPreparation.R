@@ -32,28 +32,38 @@ val_AOE$GEOID <- paste0(val_AOE$State.ANSI, val_AOE$County.ANSI) #combine state 
 val_AOE$Value <- gsub(",","",val_AOE$Value) #remove commas so that dollars is numeric
 
 ##Institutional capacity variables
-##NonProfits
+#NonProfits
 np_16 <- read.csv(paste0(infolder,"bmf.bm1608.csv"), stringsAsFactors = FALSE) #from the National Center for Charitable Statistics
 np_16$FIPS <- ifelse(nchar(np_16$FIPS) == 4, paste0("0", np_16$FIPS), np_16$FIPS) #add leading zeros
 np_16aoe <- np_16[np_16$STATE == "CA" | np_16$STATE == "OR" | np_16$STATE == "WA",] #subset to Area of Interest
 np_16_sum <- np_16aoe %>% group_by(FIPS, LEVEL4) %>% summarise(numOrg16 = n()) #Group non-profits by code denoting NAICS type
-
 np_16_tot <- np_16_sum %>% group_by(FIPS) %>% summarise(totNP16 = n()) #sum across all organization types for each county
 colnames(np_16_tot)[1] <- "GEOID"
 
-###County Governments
+#County Governments
 co_emp_dat_12 <- read.table(paste0(infolder,"12coar2.dat", colClasses="character") #load 2012 county employment data; fields described in  County Area Data File Record Layout.pdf
 colnames(co_emp_dat_12) <- c("stcode","ctycode","dataID","FTE","FTP","PTE","PTP","PTH","FTEE","TOTEMP","TOTPAY")
 co_emp_inf_12 <- read.fwf(paste0(infolder,"12coar1.dat"), widths=c(2,1,3,8,35,29,1,30,2,3,5,4,2,9,2,61,2),colClasses='character',strip.white=TRUE) #load county area ID file described in County Area ID File Record Layout.pdf
 co_emp_fips_12 <- co_emp_inf_12[,c(1,3,8:10),] #get fips codes
-
 colnames(co_emp_fips_12) <- c("stcode","ctycode", "ctyname","sfp","cfp")
 co_emp_dat_12_merge <- merge(co_emp_dat_12, co_emp_fips_12, by=c("stcode","ctycode"),all.x=TRUE) #merge fips data with employment data
+AOE_Emp <- co_emp_dat_12_merge[co_emp_dat_12_merge$sfp == "06" | co_emp_dat_12_merge$sfp == "53" | co_emp_dat_12_merge$sfp == "41",  ] #CA, OR, and WA FIPS Codes are 06, 53, 41
+AOE_totEmp <- AOE_Emp[AOE_Emp$dataID == "000",] #select the "total employee" record
+AOE_totEmp$GEOID <- paste0(AOE_totEmp$sfp, AOE_totEmp$cfp) # create 5 digit geoid for merging with tidycensus data
 
-## FIPS Codes are 06, 53, 41
-AOE_Emp <- co_emp_dat_12_merge[co_emp_dat_12_merge$sfp == "06" | co_emp_dat_12_merge$sfp == "53" | co_emp_dat_12_merge$sfp == "41",  ]
-AOE_totEmp <- AOE_Emp[AOE_Emp$dataID == "000",]
-AOE_totEmp$GEOID <- paste0(AOE_totEmp$sfp, AOE_totEmp$cfp)
-
+#Rural Development Grants
+RD_grants <- read.csv(paste0(infolder,"USDAComFac_GrantsOnly.csv"),colClasses = "character", stringsAsFactors = FALSE) #from data.gov
+colnames(RD_grants)[1:2] <- c("RD_st","RD_cty") #USDA uses obscure codes for state and county (non-ANSI)
+RD_sfp <- read.csv(paste0(infolder,"RD_sfp_xwalk.csv"), colClasses = "character") #crosswalk sfp and cfp to RD state and county codes per Gayle Doss
+colnames(RD_sfp)[1:2] <- c("RD_st","RD_cty")
+RD_join <- RD_grants %>% left_join(RD_sfp) #join ANSI codes to Grants Data
+RD_grant_sub <- RD_join[,c(31:34,5,7,14)] #retain only ID info and grant amount
+RD_grant_sub$Obligation.Amount <- gsub(",","", RD_grant_sub$Obligation.Amount) #necessary to conver to numeric
+RD_grant_sub$Obligation.Amount <- gsub(" \\$","", RD_grant_sub$Obligation.Amount) #necessary to conver to numeric
+RD_grant_sub$Obligation.Amount <- as.numeric(RD_grant_sub$Obligation.Amount) #to allow summation across all grants in the county
+RD_grant_sum <- RD_grant_sub %>% group_by(St.Cd.Fips, Cty.Cd.Fips) %>%
+                  summarise(totGrant = sum(Obligation.Amount)) #sum of grants made to county
+RD_AOE <- RD_grant_sum[RD_grant_sum$St.Cd.Fips == "06" | RD_grant_sum$St.Cd.Fips == "53" | RD_grant_sum$St.Cd.Fips == "41",] #subset to AOE
+RD_AOE$GEOID <- paste0(RD_AOE$St.Cd.Fips, RD_AOE$Cty.Cd.Fips) #create GEOID lookup
 
 
