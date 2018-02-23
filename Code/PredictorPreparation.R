@@ -41,7 +41,7 @@ np_16_tot <- np_16_sum %>% group_by(FIPS) %>% summarise(totNP16 = n()) #sum acro
 colnames(np_16_tot)[1] <- "GEOID"
 
 #County Governments
-co_emp_dat_12 <- read.table(paste0(infolder,"12coar2.dat", colClasses="character") #load 2012 county employment data; fields described in  County Area Data File Record Layout.pdf
+co_emp_dat_12 <- read.table(paste0(infolder,"12coar2.dat"), colClasses="character") #load 2012 county employment data; fields described in  County Area Data File Record Layout.pdf
 colnames(co_emp_dat_12) <- c("stcode","ctycode","dataID","FTE","FTP","PTE","PTP","PTH","FTEE","TOTEMP","TOTPAY")
 co_emp_inf_12 <- read.fwf(paste0(infolder,"12coar1.dat"), widths=c(2,1,3,8,35,29,1,30,2,3,5,4,2,9,2,61,2),colClasses='character',strip.white=TRUE) #load county area ID file described in County Area ID File Record Layout.pdf
 co_emp_fips_12 <- co_emp_inf_12[,c(1,3,8:10),] #get fips codes
@@ -68,7 +68,7 @@ RD_AOE$GEOID <- paste0(RD_AOE$St.Cd.Fips, RD_AOE$Cty.Cd.Fips) #create GEOID look
 
 ##Ecological variables
 #Rarity Weighted Richness
-RWR <- read.csv(paste0(infolder,"RWRZones.csv", colClasses = "character", stringsAsFactors = FALSE) #load zonal stats results 
+RWR <- read.csv(paste0(infolder,"RWRZones.csv"), colClasses = "character", stringsAsFactors = FALSE) #load zonal stats results 
 colnames(RWR)[1] <- "GeoFIPS"
 CA_RWR <- RWR[grep("^06", RWR$GeoFIPS),]
 WA_RWR <- RWR[grep("^53", RWR$GeoFIPS),]
@@ -78,11 +78,41 @@ AOE_RWR <- rbind(CA_RWR, WA_RWR, OR_RWR)
 colnames(AOE_RWR)[c(1,4)] <- c("GEOID","mxRWR")
 
 #Wilderness Character
-wc <- read.csv("D:/Data/CDCS_example/Data/WildChar.csv", colClasses = "character", stringsAsFactors = FALSE) #load wilderness character zonal stats results
+wc <- read.csv(paste0(infolder,"WildChar.csv"), colClasses = "character", stringsAsFactors = FALSE) #load wilderness character zonal stats results
 AOE_wc <- wc[wc$state_name == "California" | wc$state_name == "Oregon" | wc$state_name == "Washington",]
 colnames(AOE_wc)[1] <- "GEOID"
 
 #Human footprint
-hm <- read.csv("D:/Data/CDCS_example/Data/human_mod.csv", stringsAsFactors = FALSE, colClasses = "character") #load human modification zonal stats
+hm <- read.csv(paste0(infolder,"human_mod.csv"), stringsAsFactors = FALSE, colClasses = "character") #load human modification zonal stats
 hm$GEOID <- paste0(hm$sfp, hm$cfp)
 
+###Create Data frame for analysis
+##Load Land Trust Summary data
+LT <- read.csv("D:/Data/CDCS_example/Data/LT_clean.csv", colClasses = "character")
+colnames(LT)[2] <- "GEOID"
+
+#Prep tidycensus data
+inc <- median_inc[,c(4,3,1)] 
+colnames(inc)[3] <- "MedInc10"
+ed <- education[,c(8,9)]
+
+#Join into single dataframe
+df <- LT[, c(2,3)] %>% left_join(., inc, by="GEOID") %>% 
+          left_join(., ed, by="GEOID") %>%
+          left_join(., val_AOE[,c(22,20)], by="GEOID") %>% 
+          left_join(., np_16_tot, by = "GEOID") %>%
+          left_join(., AOE_totEmp[,c(10,15)], by = "GEOID") %>%
+          left_join(., RD_AOE[,c(4,3)], by = "GEOID") %>%
+          left_join(., AOE_RWR[,c(1,4)], by="GEOID") %>%
+          left_join(., AOE_wc[,c(1, 7)], by= "GEOID" ) %>%
+          left_join(., hm[,c(6,3:5)], by="GEOID")
+                    
+df$totGrant <- ifelse(is.na(df$totGrant),0, df$totGrant) #if no grants recorded for a county then value is 0 not NA                   
+df[,c(2,4:14)] <- apply(df[,c(2,4:14)], 2, function(x) as.numeric(x)) #convert to numeric 
+
+
+analysis.df <- df[df$sumAct <200, ] #eliminate extreme values
+
+analysis.df[,c(4:14)] <- apply(analysis.df[,4:14], 2, function(x) scale(x)) #scale and center covariates to improve convergence
+
+write.csv(analysis.df, paste0(infolder,"CDCS_casedf1220.csv"), row.names = FALSE) #save output for use in ModelFits.R
