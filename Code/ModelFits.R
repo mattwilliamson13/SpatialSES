@@ -1,3 +1,4 @@
+#Code for fitting Bayesian regressions and generating leave-one-out cross validation estimates
 library(bayesplot)
 library(rethinking)
 library(rstanarm)
