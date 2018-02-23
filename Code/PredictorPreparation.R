@@ -10,6 +10,7 @@ st <- c("CA","WA","OR")
 st_full <- c("CALIFORNIA","WASHINGTON","OREGON")
 census_api_key('YOUR_API_HERE')
 
+##Social willingness variables
 #Median Income
 median_inc <- map_df(st, function(x) {
   get_acs(geography = "county", variables="B06011_001E", endyear = 2010, state=x, output = "wide")
@@ -23,4 +24,15 @@ education <- map_df(st, function(x) {
 
 #Read land values from NASS downloaded file
 land_val <- read.csv(paste0(infolder,"AgLandValue_2012.csv"), colClasses = "character", stringsAsFactors = FALSE)
+
+val_AOE <- land_val[land_val$State %in% st_full, ] #subset land value data for CA, OR, WA
+val_AOE$State.ANSI <- stringr::str_pad(val_AOE$State.ANSI, 2, side="left",pad="0") #state ANSI codes should have 2 characters, leading 0's get stripped; add them back
+val_AOE$County.ANSI <- stringr::str_pad(val_AOE$County.ANSI, 3, side="left", pad="0") #county ANSI codes should have 3 characters, leading 0's get stripped; add them back
+val_AOE$GEOID <- paste0(val_AOE$State.ANSI, val_AOE$County.ANSI) #combine state and county ANSI codes to match GEOID for tidycensus data
+val_AOE$Value <- gsub(",","",val_AOE$Value) #remove commas so that dollars is numeric
+
+##Institutional capacity variables
+##NonProfits
+np_16 <- read.csv(paste0(infolder,"bmf.bm1608.csv"), stringsAsFactors = FALSE) #from the National Center for Charitable Statistics
+
 
