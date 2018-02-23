@@ -1,3 +1,4 @@
+#code for conducting Leave-one-out information criterion model comparison
 library(rstanarm)
 library(loo)
 
