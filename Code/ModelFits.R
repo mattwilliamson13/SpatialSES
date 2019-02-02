@@ -10,7 +10,7 @@ infolder <- "location of CDCS_casedf.csv" #from PredictorPreperation.R
 df <- read.csv(paste0(infolder,"CDCS_casedf.csv"), colClasses = "character")
 
 df$state <- coerce_index(substr(df$GEOID, start = 1, stop=2)) #create index for varying intercept
-df[,c(2,4:14)] <- apply(df[,c(2,4:14)], 2, function(x) as.numeric(x))
+df[,c(3:13)] <- apply(df[,c(3:13)], 2, function(x) as.numeric(x))
 
 df_stan <- df[,c(2,4:12,15)]#data for modelling
 
