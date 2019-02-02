@@ -113,6 +113,6 @@ df[,c(2:13)] <- apply(df[,c(2:13)], 2, function(x) as.numeric(x)) #convert to nu
 
 analysis.df <- df[df$sumAct <200, ] #eliminate extreme values
 
-analysis.df[,c(4:14)] <- apply(analysis.df[,4:14], 2, function(x) scale(x)) #scale and center covariates to improve convergence
+analysis.df[,c(3:13)] <- apply(analysis.df[,3:13], 2, function(x) scale(x)) #scale and center covariates to improve convergence
 
 write.csv(analysis.df, paste0(infolder,"CDCS_casedf1220.csv"), row.names = FALSE) #save output for use in ModelFits.R
