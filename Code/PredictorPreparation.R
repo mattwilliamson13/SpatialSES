@@ -92,7 +92,7 @@ LT <- read.csv("D:/Data/CDCS_example/Data/LT_clean.csv", colClasses = "character
 colnames(LT)[2] <- "GEOID"
 
 #Prep tidycensus data
-inc <- median_inc[,c(4,3,1)] 
+inc <- median_inc[,c(1,3)] 
 colnames(inc)[2] <- "MedInc10"
 ed <- education[,c(1,9)]
 
