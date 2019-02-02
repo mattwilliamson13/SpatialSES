@@ -70,7 +70,7 @@ AOE_sf <- as(AOE, "sf")
 conus.crop <- as(conus.crop,"sf")
 
 #join Easement data to spatial data
-easement_resid <- cty_sf %>% left_join(., df[,c(1,2,20:23)], by="GEOID")
+easement_resid <- cty_sf %>% left_join(., df[,c(1,2,19:22)], by="GEOID")
 
 # Project Data ------------------------------------------------------------
 
