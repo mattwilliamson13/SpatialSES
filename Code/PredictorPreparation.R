@@ -108,7 +108,7 @@ df <- LT[, c(2,3)] %>% left_join(., inc, by="GEOID") %>%
           left_join(., hm[,c(6,3:5)], by="GEOID")
                     
 df$totGrant <- ifelse(is.na(df$totGrant),0, df$totGrant) #if no grants recorded for a county then value is 0 not NA                   
-df[,c(2,4:14)] <- apply(df[,c(2,4:14)], 2, function(x) as.numeric(x)) #convert to numeric 
+df[,c(2:13)] <- apply(df[,c(2:13)], 2, function(x) as.numeric(x)) #convert to numeric 
 
 
 analysis.df <- df[df$sumAct <200, ] #eliminate extreme values
