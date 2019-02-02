@@ -93,8 +93,8 @@ colnames(LT)[2] <- "GEOID"
 
 #Prep tidycensus data
 inc <- median_inc[,c(4,3,1)] 
-colnames(inc)[3] <- "MedInc10"
-ed <- education[,c(8,9)]
+colnames(inc)[2] <- "MedInc10"
+ed <- education[,c(1,9)]
 
 #Join into single dataframe
 df <- LT[, c(2,3)] %>% left_join(., inc, by="GEOID") %>% 
